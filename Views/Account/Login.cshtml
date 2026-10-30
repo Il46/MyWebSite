@@ -1,0 +1,26 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Вход";
+}
+
+<section class="login-panel">
+    <p class="eyebrow">ЛИЧНЫЙ КАБИНЕТ</p>
+    <h1>Вход в систему</h1>
+    <p class="muted">Управляйте учебной информацией колледжа в одном месте.</p>
+    <form asp-action="Login" method="post">
+        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+        <div asp-validation-summary="ModelOnly" class="validation-message"></div>
+        <div class="field">
+            <label asp-for="Login"></label>
+            <input asp-for="Login" autocomplete="username" autofocus />
+            <span asp-validation-for="Login" class="validation-message"></span>
+        </div>
+        <div class="field">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="validation-message"></span>
+        </div>
+        <button class="button button-primary full-width" type="submit">Войти</button>
+    </form>
+    <p class="login-hint">Учетная запись задается администратором через переменные окружения приложения.</p>
+</section>

@@ -1,0 +1,49 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - MyWebSite</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/MyWebSite.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="topbar">
+            <div class="nav-inner">
+                <a class="brand" asp-controller="College" asp-action="Index"><span class="brand-icon">К</span><span>Колледж<span class="brand-subtitle">УЧЕБНЫЙ ПОРТАЛ</span></span></a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="nav-links">
+                        <a asp-controller="College" asp-action="Index" asp-route-section="students">Студенты</a>
+                        <a asp-controller="College" asp-action="Index" asp-route-section="teachers">Преподаватели</a>
+                        <a asp-controller="College" asp-action="Index" asp-route-section="groups">Группы</a>
+                        <a asp-controller="College" asp-action="Index" asp-route-section="grades">Оценки</a>
+                        <a asp-controller="College" asp-action="Index" asp-route-section="attendance">Посещаемость</a>
+                        <a asp-controller="College" asp-action="Index" asp-route-section="admin">Админ</a>
+                    </div>
+                    <form asp-controller="Account" asp-action="Logout" method="post"><button class="logout-button" type="submit">Выйти</button></form>
+                }
+                else
+                {
+                    <a class="button button-primary" asp-controller="Account" asp-action="Login">Войти</a>
+                }
+            </div>
+        </nav>
+    </header>
+    <div class="site-container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="site-footer">
+        <div class="site-container">
+            <span>© @DateTime.Now.Year @User.FindFirst("college")?.Value Колледж цифровых технологий</span>
+            <span>Учебная информация в одном месте</span>
+        </div>
+    </footer>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

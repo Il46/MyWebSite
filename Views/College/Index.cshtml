@@ -1,0 +1,170 @@
+@model CollegePageViewModel
+@{
+    ViewData["Title"] = Model.Section switch
+    {
+        "students" => "Студенты",
+        "teachers" => "Преподаватели",
+        "groups" => "Учебные группы",
+        "grades" => "Журнал оценок",
+        "attendance" => "Посещаемость",
+        "admin" => "Администрирование",
+        _ => "Главная"
+    };
+    var title = (string)ViewData["Title"]!;
+}
+
+<div class="page-heading">
+    <div>
+        <p class="eyebrow">@Model.AcademicYear · ЛИЧНЫЙ КАБИНЕТ</p>
+        <h1>@title</h1>
+    </div>
+    <span class="user-chip">@User.Identity?.Name</span>
+</div>
+
+@if (TempData["Message"] is string message)
+{
+    <div class="notice notice-success">@message</div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="notice notice-error">@error</div>
+}
+
+@if (Model.Section == "dashboard")
+{
+    <section class="welcome-card">
+        <div>
+            <p class="eyebrow">ДОБРО ПОЖАЛОВАТЬ</p>
+            <h2>@Model.CollegeName</h2>
+            <p>Все ключевые данные колледжа — в актуальном состоянии и под рукой.</p>
+        </div>
+        <span class="welcome-mark">C</span>
+    </section>
+    <div class="stat-grid">
+        <a class="stat-card" asp-action="Index" asp-route-section="students"><span>Студенты</span><strong>@Model.Students.Count</strong><small>Открыть список →</small></a>
+        <a class="stat-card" asp-action="Index" asp-route-section="teachers"><span>Преподаватели</span><strong>@Model.Teachers.Count</strong><small>Открыть список →</small></a>
+        <a class="stat-card" asp-action="Index" asp-route-section="groups"><span>Учебные группы</span><strong>@Model.Groups.Count</strong><small>Открыть список →</small></a>
+        <a class="stat-card" asp-action="Index" asp-route-section="grades"><span>Оценки</span><strong>@Model.Grades.Count</strong><small>Открыть журнал →</small></a>
+    </div>
+    <section class="panel report-panel">
+        <div class="panel-heading"><div><p class="eyebrow">СВОДКА</p><h2>Состояние колледжа</h2></div><a asp-action="Index" asp-route-section="admin">Администрирование →</a></div>
+        <pre class="report">@Model.Report</pre>
+    </section>
+}
+else if (Model.Section == "students")
+{
+    <div class="content-grid">
+        <section class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">ОБУЧАЮЩИЕСЯ</p><h2>Список студентов</h2></div><span class="count-pill">@Model.Students.Count</span></div>
+            <div class="table-wrap"><table><thead><tr><th>ФИО</th><th>ID</th><th>Возраст</th><th>Группа</th><th></th></tr></thead><tbody>
+            @foreach (var student in Model.Students)
+            {
+                <tr><td><strong>@student.Surname @student.Name</strong></td><td class="muted">@student.StudentId[..8]</td><td>@student.Age</td><td><span class="tag">@student.Group</span></td><td><form asp-action="DeleteStudent" method="post"><input type="hidden" name="id" value="@student.StudentId" /><button class="icon-button" type="submit" title="Удалить студента" aria-label="Удалить">×</button></form></td></tr>
+            }
+            </tbody></table></div>
+        </section>
+        <section class="panel form-panel">
+            <p class="eyebrow">НОВАЯ ЗАПИСЬ</p><h2>Добавить студента</h2>
+            <form asp-action="AddStudent" method="post">
+                <div class="field"><label for="student-name">Имя</label><input id="student-name" name="Name" required maxlength="80" /></div>
+                <div class="field"><label for="student-surname">Фамилия</label><input id="student-surname" name="Surname" required maxlength="80" /></div>
+                <div class="field"><label for="student-age">Возраст</label><input id="student-age" name="Age" type="number" min="15" max="70" required /></div>
+                <div class="field"><label for="student-group">Группа</label><select id="student-group" name="Group" required>@foreach (var group in Model.Groups){<option value="@group.Title">@group.Title</option>}</select></div>
+                <button class="button button-primary" type="submit">Добавить студента</button>
+            </form>
+        </section>
+    </div>
+}
+else if (Model.Section == "teachers")
+{
+    <div class="content-grid">
+        <section class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">ПЕДАГОГИЧЕСКИЙ СОСТАВ</p><h2>Преподаватели</h2></div><span class="count-pill">@Model.Teachers.Count</span></div>
+            <div class="table-wrap"><table><thead><tr><th>ФИО</th><th>Предмет</th><th>Стаж</th></tr></thead><tbody>
+            @foreach (var teacher in Model.Teachers){<tr><td><strong>@teacher.Surname @teacher.Name</strong><div class="muted">Возраст: @teacher.Age</div></td><td>@teacher.Subject</td><td>@teacher.Experience лет</td></tr>}
+            </tbody></table></div>
+        </section>
+        <section class="panel form-panel"><p class="eyebrow">НОВАЯ ЗАПИСЬ</p><h2>Добавить преподавателя</h2>
+            <form asp-action="AddTeacher" method="post">
+                <div class="field"><label>Имя</label><input name="Name" required maxlength="80" /></div>
+                <div class="field"><label>Фамилия</label><input name="Surname" required maxlength="80" /></div>
+                <div class="field"><label>Возраст</label><input name="Age" type="number" min="18" max="100" required /></div>
+                <div class="field"><label>Предмет</label><input name="Subject" required maxlength="80" /></div>
+                <div class="field"><label>Стаж, лет</label><input name="Experience" type="number" min="0" max="60" required /></div>
+                <button class="button button-primary" type="submit">Добавить преподавателя</button>
+            </form>
+        </section>
+    </div>
+}
+else if (Model.Section == "groups")
+{
+    <div class="content-grid">
+        <section class="panel"><div class="panel-heading"><div><p class="eyebrow">УЧЕБНЫЙ ПРОЦЕСС</p><h2>Учебные группы</h2></div><span class="count-pill">@Model.Groups.Count</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Название</th><th>Курс</th><th>Студентов</th></tr></thead><tbody>
+            @foreach (var group in Model.Groups){<tr><td><strong>@group.Title</strong></td><td>@group.Course</td><td>@Model.Students.Count(s => s.Group.Equals(group.Title, StringComparison.OrdinalIgnoreCase))</td></tr>}
+            </tbody></table></div>
+        </section>
+        <section class="panel form-panel"><p class="eyebrow">НОВАЯ ЗАПИСЬ</p><h2>Создать группу</h2>
+            <form asp-action="AddGroup" method="post">
+                <div class="field"><label>Название группы</label><input name="Title" required maxlength="30" /></div>
+                <div class="field"><label>Курс</label><input name="Course" type="number" min="1" max="6" required /></div>
+                <button class="button button-primary" type="submit">Создать группу</button>
+            </form>
+        </section>
+    </div>
+}
+else if (Model.Section == "grades")
+{
+    <div class="content-grid">
+        <section class="panel"><div class="panel-heading"><div><p class="eyebrow">УСПЕВАЕМОСТЬ</p><h2>Электронный журнал</h2></div><span class="count-pill">@Model.Grades.Count оценок</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Дата</th><th>Студент</th><th>Предмет</th><th>Оценка</th><th></th></tr></thead><tbody>
+            @foreach (var grade in Model.Grades){var student = Model.Students.FirstOrDefault(s => s.StudentId == grade.StudentId);<tr><td>@grade.Date.ToString("dd.MM.yyyy")</td><td>@(student is null ? "Удаленный студент" : $"{student.Surname} {student.Name}")</td><td>@grade.Subject</td><td><span class="grade grade-@grade.Value">@grade.Value</span></td><td><form asp-action="DeleteGrade" method="post"><input type="hidden" name="id" value="@grade.Id" /><button class="icon-button" type="submit" title="Удалить оценку" aria-label="Удалить">×</button></form></td></tr>}
+            </tbody></table></div>
+        </section>
+        <section class="panel form-panel"><p class="eyebrow">НОВАЯ ЗАПИСЬ</p><h2>Поставить оценку</h2>
+            @if (Model.Students.Count == 0){<p class="muted">Сначала добавьте студента.</p>}
+            else {<form asp-action="AddGrade" method="post">
+                <div class="field"><label>Студент</label><select name="StudentId" required>@foreach (var student in Model.Students){<option value="@student.StudentId">@student.Surname @student.Name — @student.Group</option>}</select></div>
+                <div class="field"><label>Предмет</label><input name="Subject" required maxlength="80" /></div>
+                <div class="field"><label>Оценка</label><select name="Value" required><option value="5">5 — отлично</option><option value="4">4 — хорошо</option><option value="3">3 — удовлетворительно</option><option value="2">2 — неудовлетворительно</option></select></div>
+                <div class="field"><label>Дата</label><input name="Date" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></div>
+                <button class="button button-primary" type="submit">Сохранить оценку</button>
+            </form>}
+        </section>
+    </div>
+}
+else if (Model.Section == "attendance")
+{
+    <div class="content-grid">
+        <section class="panel"><div class="panel-heading"><div><p class="eyebrow">УЧЕБНАЯ ДИСЦИПЛИНА</p><h2>Посещаемость</h2></div><span class="count-pill">@Model.Attendance.Count записей</span></div>
+            <div class="table-wrap"><table><thead><tr><th>Дата</th><th>Студент</th><th>Группа</th><th>Статус</th></tr></thead><tbody>
+            @foreach (var record in Model.Attendance){var student = Model.Students.FirstOrDefault(s => s.StudentId == record.StudentId);<tr><td>@record.Date.ToString("dd.MM.yyyy")</td><td>@(student is null ? "Удаленный студент" : $"{student.Surname} {student.Name}")</td><td>@(student?.Group ?? "—")</td><td><span class="status @(record.Present ? "status-present" : "status-absent")">@(record.Present ? "Присутствовал" : "Отсутствовал")</span></td></tr>}
+            </tbody></table></div>
+        </section>
+        <section class="panel form-panel"><p class="eyebrow">ОТМЕТИТЬ ЗАНЯТИЕ</p><h2>Посещаемость студента</h2>
+            @if (Model.Students.Count == 0){<p class="muted">Сначала добавьте студента.</p>}
+            else {<form asp-action="SetAttendance" method="post">
+                <div class="field"><label>Студент</label><select name="StudentId" required>@foreach (var student in Model.Students){<option value="@student.StudentId">@student.Surname @student.Name — @student.Group</option>}</select></div>
+                <div class="field"><label>Дата</label><input name="Date" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" required /></div>
+                <div class="field"><label>Статус</label><select name="Present"><option value="true">Присутствовал</option><option value="false">Отсутствовал</option></select></div>
+                <button class="button button-primary" type="submit">Сохранить отметку</button>
+            </form>}
+        </section>
+    </div>
+}
+else
+{
+    <div class="content-grid admin-grid">
+        <section class="panel"><p class="eyebrow">НАСТРОЙКИ</p><h2>Колледж и учебный год</h2>
+            <form asp-action="UpdateSettings" method="post">
+                <div class="field"><label>Название колледжа</label><input name="name" value="@Model.CollegeName" required maxlength="120" /></div>
+                <div class="field"><label>Учебный год</label><input name="year" value="@Model.AcademicYear" required maxlength="20" /></div>
+                <button class="button button-primary" type="submit">Сохранить настройки</button>
+            </form>
+        </section>
+        <section class="panel"><p class="eyebrow">СИСТЕМА</p><h2>Административная панель</h2>
+            <p class="muted">Доступ имеют только пользователи с ролью администратора. Учетные данные хранятся в переменных окружения, данные колледжа — в локальном JSON-хранилище.</p>
+            <dl class="admin-facts"><div><dt>Студенты</dt><dd>@Model.Students.Count</dd></div><div><dt>Преподаватели</dt><dd>@Model.Teachers.Count</dd></div><div><dt>Группы</dt><dd>@Model.Groups.Count</dd></div><div><dt>Записей журнала</dt><dd>@Model.Grades.Count</dd></div></dl>
+        </section>
+    </div>
+}
